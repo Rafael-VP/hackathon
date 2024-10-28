@@ -11,8 +11,8 @@ import PyPDF2
 
 import streamlit as st
 import pandas as pd
-from bd import iniciar_conexao, fechar_conexao, listar_equipamentos, inserir_ordem, inserir_ordem_equipamento, listar_tecnicos
-from datetime import datetime
+from bd import iniciar_conexao, fechar_conexao, listar_equipamentos, inserir_ordem, inserir_ordem_equipamento, listar_tecnicos, buscar_tempo_livre
+from datetime import datetime, timedelta
 import plotly.express as px  # Importação do Plotly Express
 
 ##########################
@@ -265,19 +265,59 @@ def verificar_datas_horarios(inicio, fim):
 # Verificar as datas e horários
 datas_validas = verificar_datas_horarios(inicio, fim)
 
-# Adiciona o gráfico de linha do tempo
+# Adiciona o gráfico de linha do tempo combinado
 if datas_validas:
-    # Cria um DataFrame com o evento
+    # Cria um DataFrame com o evento selecionado pelo usuário (Equipamento A)
     df_event = pd.DataFrame([{
-        'Equipamento': 'Reserva Selecionada',
+        'Equipamento': 'Equipamento A',
         'Início': inicio,
         'Fim': fim
     }])
 
-    # Cria o gráfico de linha do tempo usando Plotly Express
-    fig = px.timeline(df_event, x_start='Início', x_end='Fim', y='Equipamento')
-    fig.update_yaxes(autorange="reversed")  # Inverte a ordem do eixo Y (opcional)
-    fig.update_layout(title='Linha do Tempo da Reserva')
+    vec_cortado = [item[:6] for item in st.session_state.equipamentos_selecionados]
+    tempos = buscar_tempo_livre(conexao, vec_cortado)
+    print("tempos", tempos)
+
+
+    # # Lista hardcoded de eventos para teste (Equipamento B)
+    # eventos = [
+    #     {'Equipamento': 'Equipamento B', 'Início': datetime.now(), 'Fim': datetime.now() + timedelta(hours=2)},
+    #     {'Equipamento': 'Equipamento B', 'Início': datetime.now() + timedelta(hours=3), 'Fim': datetime.now() + timedelta(hours=5)},
+    #     {'Equipamento': 'Equipamento B', 'Início': datetime.now() + timedelta(days=1), 'Fim': datetime.now() + timedelta(days=1, hours=3)},
+    #     {'Equipamento': 'Equipamento B', 'Início': datetime.now() + timedelta(days=2), 'Fim': datetime.now() + timedelta(days=2, hours=4)},
+    #     {'Equipamento': 'Equipamento B', 'Início': datetime.now() + timedelta(hours=6), 'Fim': datetime.now() + timedelta(hours=8)},
+    # ]
+
+    eventos = []
+
+    for tempo in tempos:
+        data_inicio_str = tempo['data_inicio']
+        data_fim_str = tempo['data_fim']
+        
+        # Converter strings em objetos datetime
+        data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d %H:%M:%S')
+        data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d %H:%M:%S')
+        
+        # Opcional: Use o nome do equipamento, se disponível
+        equipamento = tempo.get('nome_ferramenta', 'Equipamento B')
+        
+        # Criar o dicionário do evento
+        evento = {
+            'Equipamento': equipamento,
+            'Início': data_inicio,
+            'Fim': data_fim
+        }
+        eventos.append(evento)
+
+    df_eventos = pd.DataFrame(eventos)
+
+    # Combina o evento do usuário com os eventos hardcoded
+    df_todos_eventos = pd.concat([df_event, df_eventos], ignore_index=True)
+
+    # Cria o gráfico de linha do tempo combinado
+    fig = px.timeline(df_todos_eventos, x_start='Início', x_end='Fim', y='Equipamento', color='Equipamento')
+    fig.update_yaxes(autorange="reversed")
+    fig.update_layout(title='Linha do Tempo das Reservas')
 
     st.plotly_chart(fig, use_container_width=True)
 
