@@ -7,7 +7,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import utils
 from pydub import AudioSegment
-
+import PyPDF2
 
 def ask_gpt(prompt):
     response = client.chat.completions.create(
@@ -66,6 +66,8 @@ prepend = "Resuma o seguinte texto em uma lista de tarefas:\n "
 st.title("Ordem de serviço:")
 uploaded_files = st.file_uploader("Arquivos de áudio:", type=['ogg', 'wav'], accept_multiple_files=True)
 
+condition = 0
+
 for uploaded_file in uploaded_files:
         # Salvando arquivo ogg
         path = os.path.join("userdata", uploaded_file.name)
@@ -105,3 +107,40 @@ for uploaded_file in uploaded_files:
         #f.write(orders)
         with open(pdf_path, "rb") as f:
             st.download_button("Baixar ordem de serviço", f, file_name="service_order.pdf")
+
+        condition = 1
+
+if(condition == 1):
+    uploaded_pdfs = st.file_uploader("Insira manuais para conserto das peças acima:", type=['pdf'], accept_multiple_files=True)
+else:
+    uploaded_pdfs = 0
+
+if uploaded_pdfs:  # Check if any files are uploaded
+    detected_text = ''
+
+    for pdf in uploaded_pdfs:
+        # Save the PDF file to a specified path
+        path = os.path.join("userdata", pdf.name)
+        with open(path, "wb") as f:
+            f.write(pdf.getvalue())  # Use the correct variable name
+
+        # Open the PDF file for reading
+        with open(path, 'rb') as pdf_file_obj:
+            pdf_reader = PyPDF2.PdfReader(pdf_file_obj)
+            num_pages = len(pdf_reader.pages)
+
+            # Extract text from each page
+            for page_num in range(num_pages):
+                page_obj = pdf_reader.pages[page_num]
+                detected_text += page_obj.extract_text() + '\n\n'
+
+    # Prepare the prompt
+    prepend2 = "Procure nesse manual como consertar as máquinas descritas na lista com o máximo de informação possível"
+    prompt2 = prepend2 + detected_text  + response
+
+    # Get the response from GPT (assuming `ask_gpt` is defined)
+    response2 = ask_gpt(prompt2)
+
+    # Display the response
+    st.write("Explicações de Conserto das Peças anteriorimente pedidas:")
+    st.write(response2)
