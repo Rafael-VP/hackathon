@@ -77,82 +77,86 @@ uploaded_files = st.file_uploader("Arquivos de áudio:", type=['ogg'], accept_mu
 
 
 pressed = 0
-for uploaded_file in uploaded_files:
-    # Salvando arquivo ogg
-    path = os.path.join("userdata", uploaded_file.name)
-    with open(path, "wb") as f:
-            f.write(uploaded_file.getvalue())
-    print(path)
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        # Salvando arquivo ogg
+        path = os.path.join("userdata", uploaded_file.name)
+        with open(path, "wb") as f:
+                f.write(uploaded_file.getvalue())
 
-    # Convertendo arquivo para WAV
-    audio = AudioSegment.from_ogg(path)
-    path = path.replace("ogg", "wav")
-    audio.export(path, format="wav")
+        # Convertendo arquivo para WAV
+        audio = AudioSegment.from_ogg(path)
+        path = path.replace("ogg", "wav")
+        audio.export(path, format="wav")
 
-    # Convertendo áudio para texto
-    file_audio = sr.AudioFile(path)
+        # Convertendo áudio para texto
+        file_audio = sr.AudioFile(path)
 
-    with file_audio as source:
-        audio_text = r.record(source)
+        with file_audio as source:
+            audio_text = r.record(source)
 
-    st.write("Ouvindo áudio...")
-    orders = r.recognize_google(audio_text, language="pt-BR")
-    prompt = prepend + orders
+        st.write("Ouvindo áudio...")
+        orders = r.recognize_google(audio_text, language="pt-BR")
+        prompt = prepend + orders
 
-    # Resumindo áudio com GPT
-    st.write("Interpretando ordem de serviço...")
-    response = ask_gpt(prompt)
-    
-    with st.expander("Transcrição completa da ordem de serviço:", expanded=False):
-        st.write(orders)
+        # Resumindo áudio com GPT
+        st.write("Interpretando ordem de serviço...")
+        response = ask_gpt(prompt)
+        
+        with st.expander("Transcrição completa da ordem de serviço:", expanded=False):
+            st.write(orders)
 
-    st.write("Resumo da ordem de serviço:")
-    st.write(response)
+        st.write("Resumo da ordem de serviço:")
+        st.write(response)
 
-    pressed = 1
-    uploaded_files.clear()
+        pressed = 1
+        uploaded_files.clear()
 
-# Checando se o botão passado foi ativado
 if pressed:
     order_text = "**# RESUMO:**\n" + response
+    uploaded_pdfs = []
     uploaded_pdfs = st.file_uploader("Insira manuais para conserto das peças acima:", type=['pdf'], accept_multiple_files=True)
     detected_text = ''
 
-    st.write("Lendo PDF...")
-    for pdf in uploaded_pdfs:
-        # Salvando os arquivos pdf
-        path = os.path.join("userdata", pdf.name)
-        with open(path, "wb") as f:
-            f.write(pdf.getvalue())
+    if uploaded_pdfs:
+        st.write("Lendo PDF...")
+        for pdf in uploaded_pdfs:
+            # Salvando os arquivos pdf
+            path = os.path.join("userdata", pdf.name)
+            with open(path, "wb") as f:
+                f.write(pdf.getvalue())
 
-        # Abrindo os arquivos pdf para leitura
-        with open(path, 'rb') as pdf_file_obj:
-            pdf_reader = PyPDF2.PdfReader(pdf_file_obj)
-            num_pages = len(pdf_reader.pages)
+            # Abrindo os arquivos pdf para leitura
+            with open(path, 'rb') as pdf_file_obj:
+                pdf_reader = PyPDF2.PdfReader(pdf_file_obj)
+                num_pages = len(pdf_reader.pages)
 
-            # Transformando pdf em texto
-            for page_num in range(num_pages):
-                page_obj = pdf_reader.pages[page_num]
-                detected_text += page_obj.extract_text() + '\n\n'
+                # Transformando pdf em texto
+                for page_num in range(num_pages):
+                    page_obj = pdf_reader.pages[page_num]
+                    detected_text += page_obj.extract_text() + '\n\n'
 
-    # Preparando o prompt
-    prepend2 = "Procure nesse manual como consertar as máquinas descritas na lista com o máximo de informação possível"
-    prompt = prepend2 + detected_text + response
+        # Preparando o prompt
+        st.write("Interpretando texto...")
+        prepend2 = "Procure nesse manual como consertar as máquinas descritas na lista com o máximo de informação possível"
+        prompt = prepend2 + detected_text + response
 
-    # Resposta do chatgpt
-    response = ask_gpt(prompt)
+        # Resposta do chatgpt
+        response = ask_gpt(prompt)
 
-    # Mostrando a Resposta
-    st.write("Explicações de Conserto das Peças anteriorimente pedidas:")
-    st.write(response)
+        # Mostrando a Resposta
+        st.write("Explicações de Conserto das Peças anteriorimente pedidas:")
+        st.write(response)
 
-    order_text += "\n\n# INSTRUÇÕES COMPLETAS:\n" + response
+        order_text += "\n\n# INSTRUÇÕES COMPLETAS:\n" + response
 
-    # Gerando ordem de serviço para download
-    pdf_path="userdata/service_order.pdf"
-    create_pdf(pdf_path, order_text)
+        # Gerando ordem de serviço para download
+        pdf_path="userdata/service_order.pdf"
+        create_pdf(pdf_path, order_text)
 
-    #f.write(orders)
-    with open(pdf_path, "rb") as f:
-        st.download_button("Baixar ordem de serviço", f, file_name="service_order.pdf")
+        #f.write(orders)
+        with open(pdf_path, "rb") as f:
+            st.download_button("Baixar ordem de serviço", f, file_name="service_order.pdf")
+        
+        uploaded_pdfs = []
 
