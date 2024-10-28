@@ -9,6 +9,44 @@ from reportlab.lib import utils
 from pydub import AudioSegment
 import PyPDF2
 
+
+st.markdown("""
+    <style>
+    .main {
+        border: 5px inset #0468f6;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px; /* Added space between elements */
+        display: flex; /* Use flexbox for layout */
+        justify-content: center; /* Center items horizontally */
+        align-items: center; /* Center items vertically */
+    }
+    .logo {
+        margin-right: 20px; /* Space between logo and title */
+    }
+    .stFileUploader {
+        background-color: #282434;
+        border: 5px inset #0468f6;
+        border-radius: 10px;
+        padding: 10px;
+        margin-top: 20px; /* Added space between elements */
+    }
+    .stFileUploader p {
+        color: #0468f6;
+    }
+    .css-1d391kg {  /* The title class */
+        text-align: center;
+        color: #0468f6;
+    }
+    </style>
+    <div class="main">
+        <img class="logo" src="https://yt3.googleusercontent.com/RcyFXjXXaec7Bc_PS8pUtmlrJP28XxqeSBp0oGHLjEE9bHhYxiYr_FeDVQSOmg4G3L3uET0B6ao=s900-c-k-c0x00ffffff-no-rj" alt="Logo" style="width:100px;height:auto;">
+        <div class="css-1d391kg">
+            <h1>Hackathon Tractian 2024</h1>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
 st.markdown(
     """
     <style>
@@ -28,6 +66,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 def ask_gpt(prompt):
     response = client.chat.completions.create(
@@ -84,7 +123,7 @@ client = OpenAI(api_key=config['Main']['gpt_key'])
 prepend = "Resuma o seguinte texto em uma lista de tarefas:\n "
 
 st.title("Ordem de serviço:")
-uploaded_files = st.file_uploader("Arquivos de áudio:", type=['ogg', 'wav'], accept_multiple_files=True)
+uploaded_files = st.file_uploader("Arquivos de áudio:", type=['ogg'], accept_multiple_files=True)
 
 condition = 0
 
