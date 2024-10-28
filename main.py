@@ -8,7 +8,6 @@ from modules.pdf import create_pdf
 import PyPDF2
 
 
-
 st.markdown("""
     <style>
     .main {
@@ -45,6 +44,7 @@ st.markdown("""
         </div>
     </div>
 """, unsafe_allow_html=True)
+
 
 def ask_gpt(prompt):
     response = client.chat.completions.create(
@@ -136,7 +136,6 @@ if(condition == 1):
     uploaded_pdfs = st.file_uploader("Insira manuais para conserto das peças acima:", type=['pdf'], accept_multiple_files=True)
 
 
-if uploaded_pdfs:  # Check if any files have been uploaded
 if uploaded_pdfs:  
     detected_text = ''
 
