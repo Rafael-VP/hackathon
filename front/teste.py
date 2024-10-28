@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
 st.title("Reserva de Equipamentos")
 
@@ -20,8 +21,6 @@ equipamentos_por_categoria = {
 # Inicializa a lista de equipamentos selecionados no estado de sessão, se não estiver inicializada
 if "equipamentos_selecionados" not in st.session_state:
     st.session_state.equipamentos_selecionados = []
-
-
 
 st.header("Equipamentos a serem usados")
 
@@ -52,9 +51,25 @@ st.header("Horário de uso")
 col1, col2 = st.columns(2)
 
 with col1:
-   date_inicio = st.date_input("Dia de início")
-   time_inicio = st.time_input("Horário de início")
+    date_inicio = st.date_input("Dia de início")
+    time_inicio = st.time_input("Horário de início")
 with col2:
     date_fim = st.date_input("Dia de fim")
     time_fim = st.time_input("Horário de fim")
+
+# Função para verificar se a data e o horário de início são menores que os de fim
+def verificar_datas_horarios(data_inicio, hora_inicio, data_fim, hora_fim):
+    # Combina data e hora em objetos datetime
+    inicio = datetime.combine(data_inicio, hora_inicio)
+    fim = datetime.combine(data_fim, hora_fim)
+    
+    # Verifica se a data de início é maior ou igual à data de fim
+    if inicio >= fim:
+        st.error("Data e horário de início não podem ser maiores ou iguais ao de fim.")
+    else:
+        st.success("Data e horário válidos para a reserva.")
+
+# Verificar as datas e horários
+verificar_datas_horarios(date_inicio, time_inicio, date_fim, time_fim)
+
 
