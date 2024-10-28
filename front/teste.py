@@ -16,23 +16,6 @@ try:
 except Exception as e:
     st.error(f"Erro ao carregar os equipamentos: {e}")
 
-print("equipamentos_por_categoria:")
-print(equipamentos_por_categoria)
-
-# # filtro
-# equipamentos_por_categoria = {
-#     "Ferramentas de corte": ["Serra Circular", "Disco de Corte", "Serra de Fita"],
-#     "Ferramentas de Medição": ["Trena", "Micrômetro", "Paquímetro"],
-#     "Equipamentos de Solda": ["Maçarico", "Soldador Elétrico", "Máscara de Solda"],
-#     "Lubrificação e Manutenção": ["Lubrificante", "Desengripante", "Pistola de Graxa"],
-#     "Equipamentos de Segurança": ["Capacete", "Óculos de Proteção", "Luvas"],
-#     "Equipamentos de Elevação": ["Guincho", "Elevador Hidráulico", "Pás"],
-#     "Componentes Mecânicos": ["Parafuso", "Porca", "Anel de Vedação"],
-#     "Equipamentos Hidráulicos": ["Bomba Hidráulica", "Mangueira", "Válvula de Controle"],
-#     "Equipamentos Elétricos": ["Multímetro", "Alicate de Crimpar", "Fonte de Alimentação"],
-#     "Ferramentas Manuais": ["Martelo", "Chave de Fenda", "Alicate"]
-# }
-
 # Inicializa a lista de equipamentos selecionados no estado de sessão, se não estiver inicializada
 if "equipamentos_selecionados" not in st.session_state:
     st.session_state.equipamentos_selecionados = []
