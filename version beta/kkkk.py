@@ -1,7 +1,57 @@
 import streamlit as st
+import os
+import configparser
+import speech_recognition as sr
+from openai import OpenAI
+from pydub import AudioSegment
 import pandas as pd
 from bd import iniciar_conexao, fechar_conexao, listar_equipamentos, inserir_ordem, inserir_ordem_equipamento, listar_tecnicos
-from datetime import datetime
+import plotly.express as px
+from datetime import datetime, timedelta
+
+config = configparser.ConfigParser()
+config.read("config.ini")
+
+r = sr.Recognizer()
+
+client = OpenAI(api_key=config['Main']['gpt_key'])
+prepend = "Resuma o seguinte texto em uma lista de tarefas:\n "
+
+st.title("Ordem de serviço:")
+uploaded_files = st.file_uploader("Arquivos de áudio:", type=['ogg', 'wav'], accept_multiple_files=True)
+
+for uploaded_file in uploaded_files:
+        # Salvando arquivo ogg
+        path = os.path.join("userdata", uploaded_file.name)
+        with open(path, "wb") as f:
+                f.write(uploaded_file.getvalue())
+        print(path)
+
+        # Convertendo arquivo para WAV
+        audio = AudioSegment.from_ogg(path)
+        path = path.replace("ogg", "wav")
+        audio.export(path, format="wav")
+
+        # Convertendo áudio para texto
+        file_audio = sr.AudioFile(path)
+
+        with file_audio as source:
+            audio_text = r.record(source)
+
+        #st.write(type(audio_text))
+        st.write("Ouvindo áudio...")
+        orders = r.recognize_google(audio_text, language="pt-BR")
+        prompt = prepend + orders
+
+        st.write("Interpretando ordem de serviço...")
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "user", "content":prompt}
+            ]
+        )
+
+        st.write(response.choices[0].message.content)
 
 st.title("Reserva de Equipamentos")
 
@@ -98,6 +148,41 @@ def reservar_ordem_servico(hora_inicio, hora_fim, id_tecnico, descricao, equipam
     except Exception as e:
         st.error(f"Erro ao criar a ordem de serviço: {e}")
 
+        
+# Supondo que a sessão de estado já tenha os valores de 'inicio', 'fim', e 'tecnico_responsavel'
+# Verifica se esses valores estão definidos antes de construir o gráfico
+if st.session_state.inicio and st.session_state.fim and "equipamentos_selecionados" in st.session_state and st.session_state.equipamentos_selecionados:
+    
+    # Construção do DataFrame com os dados da ordem de serviço e do técnico
+    data = {
+        'Equipamento': st.session_state.equipamentos_selecionados,
+        'Início': [st.session_state.inicio] * len(st.session_state.equipamentos_selecionados),
+        'Fim': [st.session_state.fim] * len(st.session_state.equipamentos_selecionados),
+        'Técnico': [tecnico_responsavel] * len(st.session_state.equipamentos_selecionados)
+    }
+
+    df = pd.DataFrame(data)
+
+    # Criar o gráfico de Gantt usando Plotly
+    fig = px.timeline(df, x_start="Início", x_end="Fim", y="Equipamento", color="Técnico", title="Gráfico de Gantt de Projetos")
+
+    # Ajustar o layout do gráfico para mostrar o eixo x de hora em hora
+    fig.update_layout(
+        xaxis_title="Hora",
+        yaxis_title="Equipamento",
+        title="Calendário de Tarefas e Responsáveis",
+        height=500,
+        xaxis=dict(
+            tickformat="%H:%M",  # Formato para mostrar apenas horas e minutos
+            dtick=3600000  # Define o intervalo das marcações de eixo x para 1 hora (em milissegundos)
+        )
+    )
+
+    # Exibir o gráfico no Streamlit
+    st.plotly_chart(fig)
+else:
+    st.warning("Por favor, preencha todos os dados de reserva para gerar o gráfico.")
+
 # Botão para confirmar a reserva
 datas_validas = True # TODO
 if st.button("Confirmar Reserva") and datas_validas:
@@ -113,8 +198,6 @@ if st.button("Confirmar Reserva") and datas_validas:
     else:
         st.warning("Selecione pelo menos um equipamento para reservar.")
 
-
-listar_equipamentos(conexao)
 
 # Fechar a conexão ao final
 fechar_conexao(conexao)
