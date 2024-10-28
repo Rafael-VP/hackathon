@@ -3,6 +3,45 @@ import os
 import configparser
 import speech_recognition as sr
 from openai import OpenAI
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import utils
+
+def create_pdf(filename, text, font_name="Helvetica", font_size=12, margin=100):
+    # Define the canvas
+    c = canvas.Canvas(filename, pagesize=letter)
+    width, height = letter
+
+    # Set font and calculate line height
+    c.setFont(font_name, font_size)
+    line_height = font_size + 2  # Space between lines
+
+    # Calculate maximum text width (page width minus margins)
+    max_text_width = width - 2 * margin
+
+    # Split text into lines that fit within the max width
+    x, y = margin, height - margin
+    for paragraph in text.splitlines():
+        # Split paragraph into lines that fit within max_text_width
+        words = paragraph.split()
+        line = ""
+        for word in words:
+            test_line = f"{line} {word}".strip()
+            # Check if line width exceeds max_text_width
+            if c.stringWidth(test_line, font_name, font_size) <= max_text_width:
+                line = test_line
+            else:
+                # Draw current line and start a new one
+                c.drawString(x, y, line)
+                y -= line_height
+                line = word
+        # Draw any remaining text in line
+        if line:
+            c.drawString(x, y, line)
+            y -= line_height
+
+    # Save the PDF
+    c.save()
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -38,5 +77,17 @@ for uploaded_file in uploaded_files:
                 {"role": "user", "content":prompt}
             ]
         )
+        
+        with st.expander("Transcrição completa da ordem de serviço:", expanded=False):
+            st.write(orders)
 
-        st.write(response.choices[0].message.contentt)
+        st.write("Resumo da ordem de serviço:")
+        st.write(response.choices[0].message.content)
+
+        # Gerando ordem de serviço para download
+        pdf_path="userdata/service_order.pdf"
+        create_pdf(pdf_path, response.choices[0].message.content)
+
+        #f.write(orders)
+        with open(pdf_path, "rb") as f:
+            st.download_button("Baixar ordem de serviço", f, filename="service_order.pdf")
