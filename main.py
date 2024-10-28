@@ -7,6 +7,24 @@ from openai import OpenAI
 from modules.pdf import create_pdf
 import PyPDF2
 
+
+def ask_gpt(prompt):
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "user", "content":prompt}
+        ]
+    )
+
+    return response.choices[0].message.content
+
+
+st.set_page_config(
+    page_title="Tractian",
+    page_icon="data/tractian.jpg",  # You can replace with a favicon path or emoji
+    #initial_sidebar_state="expanded"
+)
+
 st.markdown("""
     <style>
     .main {
@@ -44,16 +62,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-
-def ask_gpt(prompt):
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "user", "content":prompt}
-        ]
-    )
-
-    return response.choices[0].message.content
+st.markdown("<h1 style='text-align: center; color: white;'>-> MAINTENANCE COMPANION <-</h1>", unsafe_allow_html=True)
 
 
 config = configparser.ConfigParser()
@@ -64,29 +73,10 @@ r = sr.Recognizer()
 client = OpenAI(api_key=config['Main']['gpt_key'])
 prepend = "Resuma o seguinte texto em uma lista de tarefas:\n "
 
-st.set_page_config(
-    page_title="Tractian",
-    page_icon="data/tractian.jpg",  # You can replace with a favicon path or emoji
-    #initial_sidebar_state="expanded"
-)
-
-st.title("Ordem de serviço:")
 uploaded_files = st.file_uploader("Arquivos de áudio:", type=['ogg'], accept_multiple_files=True)
 
 
-st.html("""
-  <style>
-    [alt=Logo] {
-      height: 16rem;
-    }
-  </style>
-        """)
-
-st.logo("data/tractian.jpg", size="large", icon_image="data/tractian.jpg")
-st.title("GERADOR DE ORDEM DE SERVIÇO")
-
-uploaded_pdfs = ""
-uploaded_files = st.file_uploader("Faça upload de arquivos de áudio:", type=['ogg', 'wav'], accept_multiple_files=True)
+pressed = 0
 for uploaded_file in uploaded_files:
     # Salvando arquivo ogg
     path = os.path.join("userdata", uploaded_file.name)
@@ -119,25 +109,16 @@ for uploaded_file in uploaded_files:
     st.write("Resumo da ordem de serviço:")
     st.write(response)
 
-    # Gerando ordem de serviço para download
-    pdf_path="userdata/service_order.pdf"
-    create_pdf(pdf_path, response)
-
-    #f.write(orders)
-    with open(pdf_path, "rb") as f:
-        st.download_button("Baixar ordem de serviço", f, file_name="service_order.pdf")
-
-    condition = 1
+    pressed = 1
+    uploaded_files.clear()
 
 # Checando se o botão passado foi ativado
-if(condition == 1):
+if pressed:
     order_text = "**# RESUMO:**\n" + response
     uploaded_pdfs = st.file_uploader("Insira manuais para conserto das peças acima:", type=['pdf'], accept_multiple_files=True)
-
-
-if uploaded_pdfs:  
     detected_text = ''
 
+    st.write("Lendo PDF...")
     for pdf in uploaded_pdfs:
         # Salvando os arquivos pdf
         path = os.path.join("userdata", pdf.name)
