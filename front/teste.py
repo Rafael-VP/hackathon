@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from bd import iniciar_conexao, fechar_conexao, listar_equipamentos, inserir_ordem, inserir_ordem_equipamento, listar_tecnicos
 from datetime import datetime
+import plotly.express as px  # Importação do Plotly Express
 
 st.title("Reserva de Equipamentos")
 
@@ -70,22 +71,40 @@ with col2:
     date_fim = st.date_input("Dia de fim")
     time_fim = st.time_input("Horário de fim")
 
+# Combina data e hora em objetos datetime
+inicio = datetime.combine(date_inicio, time_inicio)
+fim = datetime.combine(date_fim, time_fim)
+
 # Função para verificar se a data e o horário de início são menores que os de fim
-def verificar_datas_horarios(data_inicio, hora_inicio, data_fim, hora_fim):
-    # Combina data e hora em objetos datetime
-    inicio = datetime.combine(data_inicio, hora_inicio)
-    fim = datetime.combine(data_fim, hora_fim)
-    
+def verificar_datas_horarios(inicio, fim):
     # Verifica se a data de início é maior ou igual à data de fim
     if inicio >= fim:
         st.error("Data e horário de início não podem ser maiores ou iguais ao de fim.")
+        return False
     else:
         st.success("Data e horário válidos para a reserva.")
         st.session_state.inicio = inicio
         st.session_state.fim = fim
+        return True
 
 # Verificar as datas e horários
-verificar_datas_horarios(date_inicio, time_inicio, date_fim, time_fim)
+datas_validas = verificar_datas_horarios(inicio, fim)
+
+# Adiciona o gráfico de linha do tempo
+if datas_validas:
+    # Cria um DataFrame com o evento
+    df_event = pd.DataFrame([{
+        'Equipamento': 'Reserva Selecionada',
+        'Início': inicio,
+        'Fim': fim
+    }])
+
+    # Cria o gráfico de linha do tempo usando Plotly Express
+    fig = px.timeline(df_event, x_start='Início', x_end='Fim', y='Equipamento')
+    fig.update_yaxes(autorange="reversed")  # Inverte a ordem do eixo Y (opcional)
+    fig.update_layout(title='Linha do Tempo da Reserva')
+
+    st.plotly_chart(fig, use_container_width=True)
 
 # Função para inserir a ordem de serviço no banco de dados
 def reservar_ordem_servico(hora_inicio, hora_fim, id_tecnico, descricao, equipamentos_list):
@@ -99,7 +118,6 @@ def reservar_ordem_servico(hora_inicio, hora_fim, id_tecnico, descricao, equipam
         st.error(f"Erro ao criar a ordem de serviço: {e}")
 
 # Botão para confirmar a reserva
-datas_validas = True # TODO
 if st.button("Confirmar Reserva") and datas_validas:
     if st.session_state.equipamentos_selecionados:
 
@@ -112,7 +130,6 @@ if st.button("Confirmar Reserva") and datas_validas:
         st.session_state.equipamentos_selecionados.clear()  # Limpa a lista após reserva
     else:
         st.warning("Selecione pelo menos um equipamento para reservar.")
-
 
 # Fechar a conexão ao final
 fechar_conexao(conexao)

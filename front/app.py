@@ -36,7 +36,7 @@ def home():
 # pegar tempos livres
 @app.route('/free', methods=['GET'])
 def get_free_time():
-    return buscar_tempo_livre(g.conexao, ['EQP601', 'MAT701'])
+    return buscar_tempo_livre(g.conexao, ['EQP602'])
 
 # Reiniciar banco
 @app.route('/reset', methods=['GET'])
