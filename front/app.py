@@ -18,14 +18,6 @@ def teardown_request(exception=None):
 # Rota de teste - home
 @app.route('/')
 def home():
-    return "Bem-vindo ao backend com Flask!"
-
-# Reiniciar banco
-@app.route('/reset', methods=['GET'])
-def reset_database():
-    create_data_base(g.conexao)
-    insert_template_data(g.conexao)
-
     # Listar todas as entidades
     equipamentos = listar_equipamentos(g.conexao)
     tecnicos = listar_tecnicos(g.conexao)
@@ -40,6 +32,14 @@ def reset_database():
         "ordens": ordens,
         "ordem_equipamentos": ordem_equipamentos
     })
+
+# Reiniciar banco
+@app.route('/reset', methods=['GET'])
+def reset_database():
+    create_data_base(g.conexao)
+    insert_template_data(g.conexao)
+
+    return home()
 
 
 conexao = None

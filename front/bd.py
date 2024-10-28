@@ -39,7 +39,7 @@ def create_data_base(conexao):
 
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS ordem (
-        id_ordem INTEGER PRIMARY KEY,
+        id_ordem INTEGER PRIMARY KEY AUTOINCREMENT,
         descricao TEXT,
         hora_inicio TEXT,
         hora_fim TEXT,
@@ -129,6 +129,8 @@ def insert_template_data(conexao):
     inserir_equipamento(conexao, 'MAT906', 'Chave Estrela 12mm', 'Ferramentas Manuais')
     inserir_equipamento(conexao, 'MAT907', 'Serra Manual', 'Ferramentas Manuais')
 
+    inserir_tecnico(conexao, 1, "José")
+
     conexao.commit()
 
 def inserir_equipamento(conexao, cod_sap, nome, categoria, busca = ''):
@@ -161,10 +163,16 @@ def atualizar_maquina(conexao, id_maquina, nome):
     cursor.execute('''UPDATE maquina SET nome = ? WHERE id_maquina = ?''', (nome, id_maquina))
     conexao.commit()
 
-def inserir_ordem(conexao, id_ordem, descricao, hora_inicio, hora_fim, id_tecnico):
+# def inserir_ordem(conexao, id_ordem, descricao, hora_inicio, hora_fim, id_tecnico):
+#     cursor = conexao.cursor()
+#     cursor.execute('''INSERT INTO ordem (id_ordem, descricao, hora_inicio, hora_fim, id_tecnico) VALUES (?, ?, ?, ?, ?)''', (id_ordem, descricao, hora_inicio, hora_fim, id_tecnico))
+#     conexao.commit()
+
+def inserir_ordem(conexao, descricao, hora_inicio, hora_fim, id_tecnico):
     cursor = conexao.cursor()
-    cursor.execute('''INSERT INTO ordem (id_ordem, descricao, hora_inicio, hora_fim, id_tecnico) VALUES (?, ?, ?, ?, ?)''', (id_ordem, descricao, hora_inicio, hora_fim, id_tecnico))
+    cursor.execute('''INSERT INTO ordem (descricao, hora_inicio, hora_fim, id_tecnico) VALUES (?, ?, ?, ?)''', (descricao, hora_inicio, hora_fim, id_tecnico))
     conexao.commit()
+    return cursor.lastrowid
 
 def atualizar_ordem(conexao, id_ordem, descricao, hora_inicio, hora_fim, id_tecnico):
     cursor = conexao.cursor()
