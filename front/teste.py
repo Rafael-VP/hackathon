@@ -1,12 +1,20 @@
 import streamlit as st
 import pandas as pd
-from bd import iniciar_conexao, fechar_conexao, listar_equipamentos, inserir_ordem, inserir_ordem_equipamento
+from bd import iniciar_conexao, fechar_conexao, listar_equipamentos, inserir_ordem, inserir_ordem_equipamento, listar_tecnicos
 from datetime import datetime
 
 st.title("Reserva de Equipamentos")
 
 # Iniciar a conexão com o banco de dados
 conexao = iniciar_conexao()
+
+# Carregar técnicos do banco de dados
+try:
+    tecnicos = listar_tecnicos(conexao)  # Função que retorna os técnicos
+    tecnicos_nomes = [tec['nome'] for tec in tecnicos]
+except Exception as e:
+    st.error(f"Erro ao carregar os técnicos: {e}")
+    tecnicos_nomes = []
 
 # Carregar equipamentos do banco de dados
 try:
@@ -22,6 +30,10 @@ if "equipamentos_selecionados" not in st.session_state:
 
 if "inicio" not in st.session_state: st.session_state.inicio = None
 if "fim" not in st.session_state: st.session_state.fim = None
+
+# Seleção do técnico responsável
+st.header("Escolha do Técnico")
+tecnico_responsavel = st.selectbox("Selecione o Técnico Responsável", tecnicos_nomes)
 
 st.header("Equipamentos a serem usados")
 
