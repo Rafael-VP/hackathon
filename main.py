@@ -9,7 +9,7 @@ config.read("config.ini")
 
 r = sr.Recognizer()
 
-client = OpenAI()
+client = OpenAI(api_key=config['Main']['gpt_key'])
 prepend = "Resuma o seguinte texto em uma lista de tarefas:\n "
 
 st.title("Ordem de serviço:")
@@ -27,13 +27,16 @@ for uploaded_file in uploaded_files:
             audio_text = r.record(source)
 
         #st.write(type(audio_text))
+        st.write("Ouvindo áudio...")
         orders = r.recognize_google(audio_text, language="pt-BR")
         prompt = prepend + orders
 
+        st.write("Interpretando ordem de serviço...")
         response = client.chat.completions.create(
             model="gpt-4o",
-            api_key=config['Main']['gpt_key'],
             messages=[
                 {"role": "user", "content":prompt}
             ]
         )
+
+        st.write(response.choices[0].message.contentt)
