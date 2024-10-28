@@ -130,6 +130,8 @@ def insert_template_data(conexao):
     inserir_equipamento(conexao, 'MAT907', 'Serra Manual', 'Ferramentas Manuais')
 
     inserir_tecnico(conexao, 1, "José")
+    inserir_tecnico(conexao, 2, "Pedro")
+    inserir_tecnico(conexao, 3, "Maria")
 
     conexao.commit()
 
@@ -223,3 +225,31 @@ def listar_ordem_equipamento(conexao):
     cursor.execute('''SELECT * FROM ordem_equipamento''')
     ordem_equipamentos = [dict(row) for row in cursor.fetchall()]
     return ordem_equipamentos
+import sqlite3
+
+def buscar_tempo_livre(conexao, eqps):
+    # Cria placeholders para cada equipamento
+    placeholders = ','.join(['?'] * len(eqps))
+    conexao.row_factory = sqlite3.Row  # Permite indexação por nome da coluna
+    cursor = conexao.cursor()
+    # Usa o placeholders no SQL e passa a lista 'eqps' como parâmetros
+    cursor.execute(f'''SELECT 
+        equipamento.cod_sap AS codigo_ferramenta,
+        equipamento.nome AS nome_ferramenta,
+        ordem.hora_inicio AS data_inicio,
+        ordem.hora_fim AS data_fim
+    FROM 
+        equipamento
+    JOIN 
+        ordem_equipamento ON equipamento.cod_sap = ordem_equipamento.cod_sap
+    JOIN 
+        ordem ON ordem_equipamento.id_ordem = ordem.id_ordem
+    WHERE 
+        equipamento.cod_sap IN ({placeholders})
+    ORDER BY 
+        equipamento.cod_sap, ordem.hora_inicio;
+    ''', eqps)
+    equipamentos = [dict(row) for row in cursor.fetchall()]  # Converte as linhas em dicionários
+    return equipamentos
+
+

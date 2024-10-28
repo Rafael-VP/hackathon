@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, g
-from bd import iniciar_conexao, fechar_conexao, create_data_base, insert_template_data
+from bd import iniciar_conexao, fechar_conexao, create_data_base, insert_template_data, buscar_tempo_livre
 from bd import inserir_equipamento, atualizar_equipamento, inserir_tecnico, atualizar_tecnico, inserir_maquina, atualizar_maquina, inserir_ordem, atualizar_ordem, inserir_ordem_equipamento, atualizar_ordem_equipamento
 from bd import listar_equipamentos, listar_tecnicos, listar_maquinas, listar_ordens, listar_ordem_equipamento
 
@@ -32,6 +32,11 @@ def home():
         "ordens": ordens,
         "ordem_equipamentos": ordem_equipamentos
     })
+
+# pegar tempos livres
+@app.route('/free', methods=['GET'])
+def get_free_time():
+    return buscar_tempo_livre(g.conexao, ['EQP601', 'MAT701'])
 
 # Reiniciar banco
 @app.route('/reset', methods=['GET'])
