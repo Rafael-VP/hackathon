@@ -8,6 +8,17 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import utils
 from pydub import AudioSegment
 
+
+def ask_gpt(prompt):
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "user", "content":prompt}
+        ]
+    )
+
+    return response.choices[0].message.content
+
 def create_pdf(filename, text, font_name="Helvetica", font_size=12, margin=100):
     # Define the canvas
     c = canvas.Canvas(filename, pagesize=letter)
@@ -79,25 +90,18 @@ for uploaded_file in uploaded_files:
         prompt = prepend + orders
 
         st.write("Interpretando ordem de serviço...")
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "user", "content":prompt}
-            ]
-        )
+        response = ask_gpt(prompt)
         
         with st.expander("Transcrição completa da ordem de serviço:", expanded=False):
             st.write(orders)
 
         st.write("Resumo da ordem de serviço:")
-        st.write(response.choices[0].message.content)
+        st.write(response)
 
         # Gerando ordem de serviço para download
         pdf_path="userdata/service_order.pdf"
-        create_pdf(pdf_path, response.choices[0].message.content)
+        create_pdf(pdf_path, response)
 
         #f.write(orders)
         with open(pdf_path, "rb") as f:
-            st.download_button("Baixar ordem de serviço", f, filename="service_order.pdf")
-
-        st.write(response.choices[0].message.content)
+            st.download_button("Baixar ordem de serviço", f, file_name="service_order.pdf")
