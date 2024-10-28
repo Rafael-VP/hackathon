@@ -40,3 +40,5 @@ for uploaded_file in uploaded_files:
         )
 
         st.write(response.choices[0].message.contentt)
+
+#Tixinha SIGMA
