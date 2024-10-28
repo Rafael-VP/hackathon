@@ -186,7 +186,6 @@ def listar_equipamentos(conexao):
     cursor = conexao.cursor()
     cursor.execute('''SELECT * FROM equipamento''')
     equipamentos = [dict(row) for row in cursor.fetchall()]  # Convert rows to dictionaries
-    print("eqp: ", equipamentos)
     return equipamentos
 
 def listar_tecnicos(conexao):

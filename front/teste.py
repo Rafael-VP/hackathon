@@ -1,21 +1,36 @@
 import streamlit as st
 import pandas as pd
+from bd import iniciar_conexao, fechar_conexao, listar_equipamentos
 
 st.title("Reserva de Equipamentos")
 
-# filtro
-equipamentos_por_categoria = {
-    "Ferramentas de corte": ["Serra Circular", "Disco de Corte", "Serra de Fita"],
-    "Ferramentas de Medição": ["Trena", "Micrômetro", "Paquímetro"],
-    "Equipamentos de Solda": ["Maçarico", "Soldador Elétrico", "Máscara de Solda"],
-    "Lubrificação e Manutenção": ["Lubrificante", "Desengripante", "Pistola de Graxa"],
-    "Equipamentos de Segurança": ["Capacete", "Óculos de Proteção", "Luvas"],
-    "Equipamentos de Elevação": ["Guincho", "Elevador Hidráulico", "Pás"],
-    "Componentes Mecânicos": ["Parafuso", "Porca", "Anel de Vedação"],
-    "Equipamentos Hidráulicos": ["Bomba Hidráulica", "Mangueira", "Válvula de Controle"],
-    "Equipamentos Elétricos": ["Multímetro", "Alicate de Crimpar", "Fonte de Alimentação"],
-    "Ferramentas Manuais": ["Martelo", "Chave de Fenda", "Alicate"]
-}
+# Iniciar a conexão com o banco de dados
+conexao = iniciar_conexao()
+
+# Carregar equipamentos do banco de dados
+try:
+    equipamentos = listar_equipamentos(conexao)
+    categorias = set(eqp['categoria'] for eqp in equipamentos)
+    equipamentos_por_categoria = {categoria: [eqp['nome'] for eqp in equipamentos if eqp['categoria'] == categoria] for categoria in categorias}
+except Exception as e:
+    st.error(f"Erro ao carregar os equipamentos: {e}")
+
+print("equipamentos_por_categoria:")
+print(equipamentos_por_categoria)
+
+# # filtro
+# equipamentos_por_categoria = {
+#     "Ferramentas de corte": ["Serra Circular", "Disco de Corte", "Serra de Fita"],
+#     "Ferramentas de Medição": ["Trena", "Micrômetro", "Paquímetro"],
+#     "Equipamentos de Solda": ["Maçarico", "Soldador Elétrico", "Máscara de Solda"],
+#     "Lubrificação e Manutenção": ["Lubrificante", "Desengripante", "Pistola de Graxa"],
+#     "Equipamentos de Segurança": ["Capacete", "Óculos de Proteção", "Luvas"],
+#     "Equipamentos de Elevação": ["Guincho", "Elevador Hidráulico", "Pás"],
+#     "Componentes Mecânicos": ["Parafuso", "Porca", "Anel de Vedação"],
+#     "Equipamentos Hidráulicos": ["Bomba Hidráulica", "Mangueira", "Válvula de Controle"],
+#     "Equipamentos Elétricos": ["Multímetro", "Alicate de Crimpar", "Fonte de Alimentação"],
+#     "Ferramentas Manuais": ["Martelo", "Chave de Fenda", "Alicate"]
+# }
 
 # Inicializa a lista de equipamentos selecionados no estado de sessão, se não estiver inicializada
 if "equipamentos_selecionados" not in st.session_state:
@@ -58,3 +73,6 @@ with col2:
     date_fim = st.date_input("Dia de fim")
     time_fim = st.time_input("Horário de fim")
 
+
+# Fechar a conexão ao final
+fechar_conexao(conexao)
