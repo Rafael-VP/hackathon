@@ -2,3 +2,4 @@ env/
 userdata/
 config.ini
 modules/__pycache__/pdf.cpython-312.pyc
+app.py
