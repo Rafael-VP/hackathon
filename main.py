@@ -6,6 +6,7 @@ from openai import OpenAI
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import utils
+from pydub import AudioSegment
 
 def create_pdf(filename, text, font_name="Helvetica", font_size=12, margin=100):
     # Define the canvas
@@ -55,11 +56,18 @@ st.title("Ordem de serviço:")
 uploaded_files = st.file_uploader("Arquivos de áudio:", type=['ogg', 'wav'], accept_multiple_files=True)
 
 for uploaded_file in uploaded_files:
+        # Salvando arquivo ogg
         path = os.path.join("userdata", uploaded_file.name)
         with open(path, "wb") as f:
                 f.write(uploaded_file.getvalue())
         print(path)
 
+        # Convertendo arquivo para WAV
+        audio = AudioSegment.from_ogg(path)
+        path = path.replace("ogg", "wav")
+        audio.export(path, format="wav")
+
+        # Convertendo áudio para texto
         file_audio = sr.AudioFile(path)
 
         with file_audio as source:
@@ -91,3 +99,5 @@ for uploaded_file in uploaded_files:
         #f.write(orders)
         with open(pdf_path, "rb") as f:
             st.download_button("Baixar ordem de serviço", f, filename="service_order.pdf")
+
+        st.write(response.choices[0].message.content)
