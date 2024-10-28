@@ -70,6 +70,23 @@ def verificar_datas_horarios(data_inicio, hora_inicio, data_fim, hora_fim):
 # Verificar as datas e horários
 verificar_datas_horarios(date_inicio, time_inicio, date_fim, time_fim)
 
+# Função para inserir a ordem de serviço no banco de dados
+def reservar_ordem_servico(conexao, equipamentos, data_inicio, hora_inicio, data_fim, hora_fim):
+    try:
+        for equipamento in equipamentos:
+            inserir_ordem_servico(conexao, equipamento, data_inicio, hora_inicio, data_fim, hora_fim)
+        st.success("Ordem de serviço criada com sucesso!")
+    except Exception as e:
+        st.error(f"Erro ao criar a ordem de serviço: {e}")
+
+# Botão para confirmar a reserva
+if st.button("Confirmar Reserva") and datas_validas:
+    if st.session_state.equipamentos_selecionados:
+        reservar_ordem_servico(conexao, st.session_state.equipamentos_selecionados, date_inicio, time_inicio, date_fim, time_fim)
+        st.session_state.equipamentos_selecionados.clear()  # Limpa a lista após reserva
+    else:
+        st.warning("Selecione pelo menos um equipamento para reservar.")
+
 
 # Fechar a conexão ao final
 fechar_conexao(conexao)
