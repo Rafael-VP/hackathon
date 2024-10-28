@@ -47,27 +47,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-st.markdown(
-    """
-    <style>
-    /* Change the background color */
-    .stFileUploader {
-        background-color: #282434; 
-        border: 5px inset #0468f6; 
-        border-radius: 10px; 
-        padding: 10px; 
-    }
-
-    /* Change text color */
-    .stFileUploader p {
-        color: #0468f6; /* Blue text color */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-
 def ask_gpt(prompt):
     response = client.chat.completions.create(
         model="gpt-4o",
