@@ -7,7 +7,6 @@ from openai import OpenAI
 from modules.pdf import create_pdf
 import PyPDF2
 
-
 st.markdown("""
     <style>
     .main {
