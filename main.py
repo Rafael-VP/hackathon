@@ -110,37 +110,38 @@ for uploaded_file in uploaded_files:
 
         condition = 1
 
+# Checando se o botão passado foi ativado
 if(condition == 1):
     uploaded_pdfs = st.file_uploader("Insira manuais para conserto das peças acima:", type=['pdf'], accept_multiple_files=True)
 else:
     uploaded_pdfs = 0
 
-if uploaded_pdfs:  # Check if any files are uploaded
+if uploaded_pdfs:  
     detected_text = ''
 
     for pdf in uploaded_pdfs:
-        # Save the PDF file to a specified path
+        # Salvando os arquivos pdf
         path = os.path.join("userdata", pdf.name)
         with open(path, "wb") as f:
-            f.write(pdf.getvalue())  # Use the correct variable name
+            f.write(pdf.getvalue())
 
-        # Open the PDF file for reading
+        # Abrindo os arquivos pdf para leitura
         with open(path, 'rb') as pdf_file_obj:
             pdf_reader = PyPDF2.PdfReader(pdf_file_obj)
             num_pages = len(pdf_reader.pages)
 
-            # Extract text from each page
+            # Transformando pdf em texto
             for page_num in range(num_pages):
                 page_obj = pdf_reader.pages[page_num]
                 detected_text += page_obj.extract_text() + '\n\n'
 
-    # Prepare the prompt
+    # Preparando o prompt
     prepend2 = "Procure nesse manual como consertar as máquinas descritas na lista com o máximo de informação possível"
     prompt2 = prepend2 + detected_text  + response
 
-    # Get the response from GPT (assuming `ask_gpt` is defined)
+    # Resposta do chatgpt
     response2 = ask_gpt(prompt2)
 
-    # Display the response
+    # Mostrando a Resposta
     st.write("Explicações de Conserto das Peças anteriorimente pedidas:")
     st.write(response2)
