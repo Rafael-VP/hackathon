@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from bd import iniciar_conexao, fechar_conexao, listar_equipamentos
+from bd import iniciar_conexao, fechar_conexao, listar_equipamentos, inserir_ordem
 from datetime import datetime
 
 st.title("Reserva de Equipamentos")
@@ -12,13 +12,16 @@ conexao = iniciar_conexao()
 try:
     equipamentos = listar_equipamentos(conexao)
     categorias = set(eqp['categoria'] for eqp in equipamentos)
-    equipamentos_por_categoria = {categoria: [eqp['nome'] for eqp in equipamentos if eqp['categoria'] == categoria] for categoria in categorias}
+    equipamentos_por_categoria = {categoria: [f"{eqp['cod_sap']}: {eqp['nome']}" for eqp in equipamentos if eqp['categoria'] == categoria] for categoria in categorias}
 except Exception as e:
     st.error(f"Erro ao carregar os equipamentos: {e}")
 
 # Inicializa a lista de equipamentos selecionados no estado de sessão, se não estiver inicializada
 if "equipamentos_selecionados" not in st.session_state:
     st.session_state.equipamentos_selecionados = []
+
+if "inicio" not in st.session_state: st.session_state.inicio = None
+if "fim" not in st.session_state: st.session_state.fim = None
 
 st.header("Equipamentos a serem usados")
 
@@ -66,23 +69,31 @@ def verificar_datas_horarios(data_inicio, hora_inicio, data_fim, hora_fim):
         st.error("Data e horário de início não podem ser maiores ou iguais ao de fim.")
     else:
         st.success("Data e horário válidos para a reserva.")
+        st.session_state.inicio = inicio
+        st.session_state.fim = fim
 
 # Verificar as datas e horários
 verificar_datas_horarios(date_inicio, time_inicio, date_fim, time_fim)
 
 # Função para inserir a ordem de serviço no banco de dados
-def reservar_ordem_servico(conexao, equipamentos, data_inicio, hora_inicio, data_fim, hora_fim):
-    try:
-        for equipamento in equipamentos:
-            inserir_ordem_servico(conexao, equipamento, data_inicio, hora_inicio, data_fim, hora_fim)
-        st.success("Ordem de serviço criada com sucesso!")
-    except Exception as e:
-        st.error(f"Erro ao criar a ordem de serviço: {e}")
+def reservar_ordem_servico(hora_inicio, hora_fim, id_tecnico, equipamentos_list, cod_sap):
+    # try:
+    #     inserir_ordem(conexao, 5, descricao, hora_inicio, hora_fim, id_tecnico)
+    #     for equipamento in equipamentos:
+    #         inserir_ordem_servico(conexao, equipamento, data_inicio, hora_inicio, data_fim, hora_fim)
+    #     st.success("Ordem de serviço criada com sucesso!")
+    # except Exception as e:
+    #     st.error(f"Erro ao criar a ordem de serviço: {e}")
+    pass
 
 # Botão para confirmar a reserva
+datas_validas = True # TODO
 if st.button("Confirmar Reserva") and datas_validas:
     if st.session_state.equipamentos_selecionados:
-        reservar_ordem_servico(conexao, st.session_state.equipamentos_selecionados, date_inicio, time_inicio, date_fim, time_fim)
+        st.write(f"inicio: {st.session_state.inicio}")
+        st.write(f"fim: {st.session_state.fim}")
+        st.write(f"equipamentos: {st.session_state.equipamentos_selecionados}")
+        reservar_ordem_servico("PDF que vai ser criado", st.session_state.equipamentos_selecionados, date_inicio, time_inicio, date_fim, time_fim)
         st.session_state.equipamentos_selecionados.clear()  # Limpa a lista após reserva
     else:
         st.warning("Selecione pelo menos um equipamento para reservar.")
