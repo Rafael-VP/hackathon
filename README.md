@@ -4,7 +4,7 @@ Software auxiliar para manutenção industrial, desenvolvido durante a Hackathon
 ## Instalação
 Clone o repositório
 ```bash
-git clone https://github.com/Rafael-VP/hackathon
+git clone https://github.com/Rafael-VP/hackathon-tractian-2024
 ```
 Execute `setup.sh` para instalar as dependências e preparar o envinroment.
 
